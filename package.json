@@ -1,1 +1,13 @@
-{"name": "ancpcp", "private": true, "workspaces": ["packages/*"]}
+{
+  "name": "ancpcp",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @ancpcp/web run dev",
+    "dev:mobile": "npm --workspace @ancpcp/mobile run start",
+    "db:generate": "npm --workspace @ancpcp/db run prisma:generate",
+    "db:seed": "npm --workspace @ancpcp/db run seed"
+  }
+}
