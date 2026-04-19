@@ -1,69 +1,90 @@
-# ANCPCP Project Documentation
+# ANCPCP MVP — Asociación Peruana de Caballos de Paso
 
-## Overview
-The ANCPCP project is designed to provide a comprehensive platform for [describe purpose of the project]. This documentation will guide you through the project structure and setup instructions.
+MVP full-stack para gestión de concursos, categorías, rondas, jueces, participantes y resultados en vivo.
 
-## Project Structure
-The ANCPCP project follows a structured format to ensure maintainability and ease of understanding. Below is the breakdown of the project's directory structure:
+## Monorepo
 
-```
-ANCPCP/
-├── src/
-│   ├── main/
-│   └── test/
-├── docs/
-├── scripts/
-├── config/
-└── README.md
+```text
+packages/
+  db/        -> Prisma + PostgreSQL schema + seed
+  shared/    -> Tipos de dominio + motor de scoring + servicios compartidos
+  web/       -> Next.js 14 (admin + público + API routes)
+  mobile/    -> Expo React Native (roles: juez/staff/expositor/público)
 ```
 
-### Directory Details:
-- **src/**: This directory contains the source code of the application. It is divided into `main` and `test` subdirectories.  
-  - **main/**: Contains the main source code files.  
-  - **test/**: Contains unit tests and other testing resources.  
+## Stack
 
-- **docs/**: This directory includes documentation files related to the project, such as design documents and user guides.
+- Web: Next.js 14 + TypeScript + App Router + Tailwind
+- Mobile: React Native + Expo + TypeScript
+- DB: PostgreSQL + Prisma ORM
+- Auth (MVP): login mock por rol (preparado para migrar a NextAuth/JWT)
+- Live updates: polling cada 5 segundos en web pública
 
-- **scripts/**: Scripts used for deployment, configuration or any other automated tasks necessary for the project.
+## Requisitos
 
-- **config/**: Configuration files required by the application.
+- Node.js 20+
+- npm 10+
+- PostgreSQL 14+
 
-## Setup Instructions
-To set up the ANCPCP project locally, follow the steps below:
+## Instalación
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/rdoeliasmelo-cloud/ANCPCP.git
-   cd ANCPCP
-   ```
+1. Instalar dependencias:
 
-2. **Install Dependencies**:
-   Make sure you have the necessary dependencies installed. This usually includes a language runtime and package manager. For example:
-   ```bash
-   npm install
-   ```
-   or 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+npm install
+```
 
-3. **Environment Setup**:
-   Create a `.env` file in the root directory of the project and configure your environment variables as necessary. 
+2. Configurar base de datos en `packages/db/.env`:
 
-4. **Running the Application**:
-   To run the application, use:
-   ```bash
-   npm start  # or relevant command for your project
-   ```
+```bash
+DATABASE_URL="postgresql://user:password@localhost:5432/ancpcp"
+```
 
-5. **Testing the Application**:
-   You can run the tests using:
-   ```bash
-   npm test  # or relevant command for your project
-   ```
+3. Generar cliente Prisma y aplicar migraciones (cuando se creen):
 
-## Conclusion
-This README gives a basic outline of the ANCPCP project structure and how to set it up on your local machine. For more detailed guidance, refer to the individual documentation files in the `docs/` directory.
+```bash
+npm run db:generate
+```
 
----
-*Last updated: 2026-04-19 19:57:40 UTC*
+4. Cargar seed inicial:
+
+```bash
+npm run db:seed
+```
+
+## Desarrollo
+
+Web:
+
+```bash
+npm run dev:web
+```
+
+Mobile:
+
+```bash
+npm run dev:mobile
+```
+
+## Endpoints MVP
+
+- `POST /api/events` crear evento
+- `POST /api/categories` crear categoría
+- `POST /api/participants` registrar participante
+- `POST /api/scores` guardar puntajes
+- `POST /api/results/recalculate` recalcular resultados
+- `GET /api/leaderboard?roundId=rnd-2` consultar leaderboard
+
+## Módulos incluidos en primera iteración
+
+- Gestión base de eventos, categorías, rondas y participantes
+- Dashboard admin web con indicadores principales
+- Vista pública de resultados en vivo (polling 5s)
+- App mobile base con navegación y pantallas iniciales
+- Motor de scoring configurable y compartido (`@ancpcp/shared`)
+
+## Notas MVP
+
+- Persistencia operativa para web/mobile se simula con `mock-store` compartido para acelerar el MVP UI/API.
+- El esquema Prisma sí representa el diseño real de datos para producción.
+- Motor de scoring configurable sin fórmula rígida para facilitar adaptación a reglamento oficial ANCPCP.

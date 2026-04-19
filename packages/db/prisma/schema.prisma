@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  SUPER_ADMIN
+  ASSOCIATION_STAFF
+  JUDGE
+  EXHIBITOR
+  PUBLIC
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ACTIVE
+  CLOSED
+}
+
+enum RoundStatus {
+  PENDING
+  IN_TRACK
+  EVALUATED
+  OFFICIAL
+}
+
+enum ParticipantStatus {
+  REGISTERED
+  CONFIRMED
+  IN_COMPETITION
+  WITHDRAWN
+  DISQUALIFIED
+  FINISHED
+}
+
+enum ScoringMethod {
+  SIMPLE_AVERAGE
+  WEIGHTED_AVERAGE
+  DROP_HIGHEST_LOWEST
+  RANKING_BY_POSITION
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
+  exhibitorId  String?
+  exhibitor    Exhibitor? @relation(fields: [exhibitorId], references: [id])
+  scoreEntries ScoreEntry[]
+  assignments  JudgeAssignment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Role {
+  id    String   @id @default(cuid())
+  name  RoleName @unique
+  users User[]
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  name       String
+  startDate  DateTime
+  venue      String
+  status     EventStatus @default(DRAFT)
+  publishedAt DateTime?
+  categories Category[]
+  assignments JudgeAssignment[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id])
+  name        String
+  displayOrder Int
+  rounds      Round[]
+  participants Participant[]
+  judgeAssignments JudgeAssignment[]
+  scoringRule ScoringRule?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Round {
+  id           String   @id @default(cuid())
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+  name         String
+  displayOrder Int
+  status       RoundStatus @default(PENDING)
+  scoreEntries ScoreEntry[]
+  penalties    Penalty[]
+  results      Result[]
+  scoringRule  ScoringRule?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Horse {
+  id          String   @id @default(cuid())
+  name        String
+  registryCode String?
+  birthDate   DateTime?
+  breedingFarm String?
+  ownerName   String?
+  participants Participant[]
+  createdAt   DateTime @default(now())
+}
+
+model Exhibitor {
+  id           String   @id @default(cuid())
+  name         String
+  documentId   String?
+  phone        String?
+  email        String?
+  users        User[]
+  participants Participant[]
+  createdAt    DateTime @default(now())
+}
+
+model Participant {
+  id              String   @id @default(cuid())
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  horseId          String
+  horse            Horse    @relation(fields: [horseId], references: [id])
+  exhibitorId      String
+  exhibitor        Exhibitor @relation(fields: [exhibitorId], references: [id])
+  entryNumber      Int
+  status           ParticipantStatus @default(REGISTERED)
+  currentRoundId   String?
+  scoreEntries     ScoreEntry[]
+  penalties        Penalty[]
+  results          Result[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([categoryId, entryNumber])
+}
+
+model JudgeAssignment {
+  id         String   @id @default(cuid())
+  judgeId    String
+  judge      User     @relation(fields: [judgeId], references: [id])
+  eventId    String?
+  event      Event?   @relation(fields: [eventId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model ScoringRule {
+  id                   String   @id @default(cuid())
+  method               ScoringMethod
+  weightsByJudgeId     Json?
+  tiebreaker           String
+  discardHighestLowest Boolean @default(false)
+  manualPenaltyEnabled Boolean @default(true)
+  categoryId           String?  @unique
+  category             Category? @relation(fields: [categoryId], references: [id])
+  roundId              String?  @unique
+  round                Round?   @relation(fields: [roundId], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model ScoreEntry {
+  id            String   @id @default(cuid())
+  roundId        String
+  round          Round    @relation(fields: [roundId], references: [id])
+  participantId  String
+  participant    Participant @relation(fields: [participantId], references: [id])
+  judgeId        String
+  judge          User     @relation(fields: [judgeId], references: [id])
+  score          Decimal  @db.Decimal(8, 3)
+  position       Int?
+  isValid        Boolean  @default(true)
+  invalidatedById String?
+  invalidReason  String?
+  createdAt      DateTime @default(now())
+
+  @@index([roundId, participantId])
+}
+
+model Penalty {
+  id            String   @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  roundId       String
+  round         Round    @relation(fields: [roundId], references: [id])
+  points        Decimal  @db.Decimal(8, 3)
+  reason        String
+  createdById   String?
+  createdAt     DateTime @default(now())
+}
+
+model Result {
+  id            String   @id @default(cuid())
+  roundId       String
+  round         Round    @relation(fields: [roundId], references: [id])
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  finalScore    Decimal  @db.Decimal(10, 3)
+  rank          Int
+  isOfficial    Boolean  @default(false)
+  officializedAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([roundId, participantId])
+}
