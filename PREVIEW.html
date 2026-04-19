@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANCPCP Admin Dashboard Preview</title>
+    <style>
+        /* Tailwind CSS classes as inline styles */
+        .navbar { background-color: #1a202c; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { color: white; font-size: 1.5rem; font-weight: bold; }
+        .navbar-menu { display: flex; gap: 1rem; }
+        .menu-item { color: white; text-decoration: none; }
+        .stats, .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 2rem 0; }
+        .card { background-color: #2d3748; color: white; padding: 1rem; border-radius: 0.5rem; text-align: center; }
+        .leaderboard { margin: 2rem 0; border-collapse: collapse; }
+        .leaderboard th, .leaderboard td { border: 1px solid #cbd5e0; padding: 0.5rem; text-align: center; }
+        .badge { padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
+        .status-online { background-color: #68d391; color: white; }
+        .status-offline { background-color: #f56565; color: white; }
+        .hover-card:hover { background-color: #4a5568; transition: background-color 0.3s; }
+        /* Modal styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; padding: 2rem; margin: 10% auto; width: 80%; border-radius: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">ANCPCP</div>
+        <div class="navbar-menu">
+            <a href="#" class="menu-item">Home</a>
+            <a href="#" class="menu-item">Dashboard</a>
+            <a href="#" class="menu-item">Settings</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="card">Events: <span class="badge status-online">5</span></div>
+        <div class="card">Participants: <span class="badge status-online">150</span></div>
+        <div class="card">Pending Results: <span class="badge status-offline">3</span></div>
+        <div class="card">Upcoming Rounds: <span class="badge status-online">2</span></div>
+    </div>
+
+    <div class="quick-actions">
+        <div class="card hover-card" onclick="document.getElementById('createEventModal').style.display='block';">Create Event</div>
+        <div class="card hover-card" onclick="document.getElementById('manageParticipantsModal').style.display='block';">Manage Participants</div>
+    </div>
+
+    <table class="leaderboard">
+        <tr>
+            <th>Participant</th>
+            <th>Score</th>
+        </tr>
+        <tr>
+            <td>Campeador</td>
+            <td>95</td>
+        </tr>
+        <tr>
+            <td>Conquistador</td>
+            <td>90</td>
+        </tr>
+    </table>
+
+    <div id="createEventModal" class="modal">
+        <div class="modal-content">
+            <span onclick="document.getElementById('createEventModal').style.display='none';" style="cursor:pointer">&times;</span>
+            <h2>Create Event</h2>
+            <form>
+                <label for="eventName">Event Name:</label><br>
+                <input type="text" id="eventName" name="eventName"><br>
+                <input type="submit" value="Create">
+            </form>
+        </div>
+    </div>
+
+    <div id="manageParticipantsModal" class="modal">
+        <div class="modal-content">
+            <span onclick="document.getElementById('manageParticipantsModal').style.display='none';" style="cursor:pointer">&times;</span>
+            <h2>Manage Participants</h2>
+            <form>
+                <label for="participantName">Participant Name:</label><br>
+                <input type="text" id="participantName" name="participantName"><br>
+                <input type="submit" value="Update">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
